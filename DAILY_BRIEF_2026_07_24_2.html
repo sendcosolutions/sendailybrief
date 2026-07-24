@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAILY BRIEF — SEN Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #F8F7F4;
+            color: #1F1F1F;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4A9B8E 0%, #7B68A6 100%);
+            color: white;
+            padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .header-info { flex: 1; }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header p { font-size: 11px; opacity: 0.9; margin-top: 1px; }
+
+        .header-buttons {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .global-notes {
+            background: #FFFBF5;
+            border-top: 3px solid #C4A474;
+            padding: 8px 16px;
+            border-bottom: 1px solid #E8D9C8;
+        }
+
+        .global-notes h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #7B68A6;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .global-notes textarea {
+            width: 100%;
+            height: 40px;
+            padding: 6px;
+            border: 1px solid #E0D0C0;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 11px;
+            resize: none;
+            background: white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+            overflow: hidden;
+            padding: 12px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .column h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #7B68A6;
+            font-weight: 700;
+            margin-bottom: 4px;
+            position: sticky;
+            top: 0;
+            background: #F8F7F4;
+            padding: 4px 0;
+            z-index: 10;
+        }
+
+        .brief-card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #82A08A;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .brief-card.urgent {
+            border-left-color: #D97A5C;
+            background: #FEF5F3;
+        }
+
+        .brief-card.monitor {
+            border-left-color: #C4A474;
+            background: #FFFBF5;
+        }
+
+        .brief-card.reference {
+            border-left-color: #A8A8A8;
+            background: #FBFBFB;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .card-header h3 {
+            font-size: 12px;
+            font-weight: 700;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .score-badge {
+            font-size: 9px;
+            background: #D97A5C;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .score-badge.monitor {
+            background: #C4A474;
+        }
+
+        .score-badge.reference {
+            background: #A8A8A8;
+        }
+
+        .card-source {
+            font-size: 10px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .card-source a {
+            color: #4A9B8E;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .card-source a:hover {
+            color: #3A8A7D;
+            text-decoration: underline double;
+        }
+
+        .card-timestamp {
+            font-size: 9px;
+            color: #D97A5C;
+            font-weight: 700;
+        }
+
+        .card-content {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #2D2D2D;
+        }
+
+        .card-content strong {
+            color: #1F1F1F;
+        }
+
+        .audience-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .audience-tag {
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .audience-tag.senco {
+            background: #E8F5F2;
+            color: #4A9B8E;
+            border-left: 2px solid #4A9B8E;
+        }
+
+        .audience-tag.business {
+            background: #F5F0E8;
+            color: #7B68A6;
+            border-left: 2px solid #7B68A6;
+        }
+
+        .audience-tag.government {
+            background: #F0E8F5;
+            color: #7B68A6;
+            border-left: 2px solid #7B68A6;
+        }
+
+        .audience-tag.school {
+            background: #E8F0F5;
+            color: #4A9B8E;
+            border-left: 2px solid #4A9B8E;
+        }
+
+        .audience-tag.la {
+            background: #F5E8E8;
+            color: #D97A5C;
+            border-left: 2px solid #D97A5C;
+        }
+
+        .audience-tag.sponsor {
+            background: #FFF5E8;
+            color: #C4A474;
+            border-left: 2px solid #C4A474;
+        }
+
+        .advice-toggle {
+            font-size: 10px;
+            color: #7B68A6;
+            font-weight: 600;
+            margin-top: 6px;
+            padding: 4px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+
+        .advice-toggle:hover {
+            color: #4A9B8E;
+        }
+
+        .advice-toggle::before {
+            content: "▸";
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 11px;
+        }
+
+        .advice-toggle.open::before {
+            transform: rotate(90deg);
+        }
+
+        .talking-points {
+            font-size: 10px;
+            background: #FBFBFB;
+            border-left: 2px solid #E0D0C0;
+            padding: 6px;
+            border-radius: 3px;
+            margin-top: 0;
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        .talking-points.open {
+            display: block;
+            max-height: 400px;
+        }
+
+        .talking-points strong {
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #7B68A6;
+            margin-bottom: 3px;
+            margin-top: 3px;
+        }
+
+        .talking-points strong:first-child {
+            margin-top: 0;
+        }
+
+        .talking-points ul {
+            margin-left: 12px;
+            color: #555;
+        }
+
+        .talking-points li {
+            margin-bottom: 2px;
+        }
+
+        .card-action {
+            font-size: 11px;
+            color: #4A9B8E;
+            font-weight: 600;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #E8E8E8;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .card-action::before {
+            content: "→";
+            flex-shrink: 0;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .card-notes-toggle {
+            font-size: 10px;
+            color: #888;
+            font-weight: 600;
+            margin-top: 6px;
+            padding: 4px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+
+        .card-notes-toggle:hover {
+            color: #4A9B8E;
+        }
+
+        .card-notes-toggle::before {
+            content: "▸";
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 11px;
+        }
+
+        .card-notes-toggle.open::before {
+            transform: rotate(90deg);
+        }
+
+        .card-notes {
+            margin-top: 0;
+            padding: 6px;
+            background: white;
+            border: 1px solid #E8E8E8;
+            border-radius: 3px;
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        .card-notes.open {
+            display: block;
+            max-height: 200px;
+        }
+
+        .card-notes textarea {
+            width: 100%;
+            height: 35px;
+            border: none;
+            font-family: 'Monaco', monospace;
+            font-size: 10px;
+            resize: none;
+            background: transparent;
+        }
+
+        .card-notes textarea::placeholder {
+            color: #BBB;
+        }
+
+        .card-notes textarea:focus {
+            outline: none;
+        }
+
+        button {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-download { background: white; color: #4A9B8E; border: 1px solid white; }
+        .btn-download:hover { background: #E8F5F2; }
+        .btn-print { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); }
+        .btn-print:hover { background: rgba(255,255,255,0.3); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F8F7F4; }
+        ::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 3px; }
+
+        @media print {
+            body { height: auto; overflow: visible; }
+            .main-grid { overflow: visible; }
+            .bottom-bar { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-info">
+            <h1>📋 DAILY BRIEF — SEN Intelligence</h1>
+            <p>Friday, 24 July 2026 · 09:15 UTC — For SENCOs • Businesses • Government • LAs • School Leaders • AP Providers</p>
+        </div>
+        <div class="header-buttons">
+            <button class="btn-download" onclick="downloadBrief()">💾 Save</button>
+            <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        </div>
+    </div>
+
+    <div class="global-notes">
+        <h3>📌 Today's Key Themes</h3>
+        <textarea id="global-notes" placeholder="EOTAS reintegration and funding are the dominant policy threads this week. Consultation windows for core legislation are closing in Sept-Oct. Ofsted readiness is urgent."></textarea>
+    </div>
+
+    <div class="main-grid">
+        <!-- COLUMN 1: TOP TODAY -->
+        <div class="column">
+            <h2>🔴 TOP TODAY</h2>
+
+            <!-- Card 1: SEND Reform EOTAS Consultation -->
+            <div class="brief-card urgent">
+                <div class="card-header">
+                    <h3>SEND Reform: Education Otherwise Than At School (EOTAS)</h3>
+                    <div class="score-badge">22/22</div>
+                </div>
+                <div class="card-timestamp">⏰ Updated 24 July 2026, 09:15 UTC</div>
+                <div class="card-source"><a href="https://consult.education.gov.uk/accountability-and-special-schools/send-reform-education-otherwise-than-at-school-chi/" target="_blank">DfE Official Consultation</a> — 14 July | Closing 18 Sept</div>
+                <div class="card-content">
+                    <strong>What:</strong> Landmark consultation reshapes legal framework for EOTAS. Proposes earlier intervention, quality standards, named school accountability, and provider benchmarks. <strong>87 days to respond — hard deadline 18 Sept.</strong>
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag senco">SENCO</span>
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag government">Government</span>
+                    <span class="audience-tag la">LA</span>
+                    <span class="audience-tag sponsor">EdTech Partner</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For SENCOs:</strong>
+                    <ul>
+                        <li>Your school may become named EOTAS accountholder under new framework</li>
+                        <li>Current EOTAS arrangements stable until 2029/30 (implementation timeline)</li>
+                        <li>Tribunal/appeal rights not being removed (sector concern clarified)</li>
+                    </ul>
+                    <strong>For Schools:</strong>
+                    <ul>
+                        <li>Expect expanded accountability for children placed in alternative arrangements</li>
+                        <li>Closer collaboration needed with LAs and health services</li>
+                        <li>Reintegration focus becomes statutory expectation</li>
+                    </ul>
+                    <strong>For LAs:</strong>
+                    <ul>
+                        <li>EOTAS landscape shifting from LA-led to school-led accountability model</li>
+                        <li>Provider quality standards and early intervention become LA compliance obligations</li>
+                        <li>Budget implications for health/education coordination</li>
+                    </ul>
+                    <strong>For EdTech Partners:</strong>
+                    <ul>
+                        <li>EOTAS quality standards may drive demand for tracking and monitoring tools</li>
+                        <li>Early intervention tech platforms could see policy tailwind</li>
+                        <li>Accredited online provider role in framework may open new B2B channels</li>
+                    </ul>
+                </div>
+                <div class="card-action">Draft response to consultation by end of August — involve SENCOs, school leaders, and LA partners</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: consultation response plan, client engagement..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 2: New SEND Funding Model for Mainstream Schools -->
+            <div class="brief-card urgent">
+                <div class="card-header">
+                    <h3>SEND Funding Consultation: Mainstream School Distribution Model</h3>
+                    <div class="score-badge">22/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://www.gov.uk/government/publications" target="_blank">DfE Consultations</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> DfE launches consultation on how SEND funding is distributed in mainstream schools. Core resource allocation model up for review. Parallel to EOTAS reforms — signals broader funding restructure.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag la">LA</span>
+                    <span class="audience-tag senco">SENCO</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools:</strong>
+                    <ul>
+                        <li>Budget allocation methods for SEND support may change significantly</li>
+                        <li>Resource planning must account for new distribution model post-2027/28</li>
+                        <li>Lower-cost SEND support may shift away from schools under new model</li>
+                    </ul>
+                    <strong>For SENCOs:</strong>
+                    <ul>
+                        <li>Finance conversations with school leaders become urgent</li>
+                        <li>Case for robust SEND budgeting and evidence of spend becomes critical</li>
+                    </ul>
+                    <strong>For LAs:</strong>
+                    <ul>
+                        <li>High Needs Block sustainability tied to mainstream funding model changes</li>
+                        <li>Funding advocacy must coordinate across school and LA sectors</li>
+                    </ul>
+                </div>
+                <div class="card-action">Model financial impact of new SEND distribution method — consult schools and LAs on budget implications</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: funding impact modeling, school briefings..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 3: Ofsted Inspection Framework 2026-27 SEND Focus -->
+            <div class="brief-card urgent">
+                <div class="card-header">
+                    <h3>Ofsted Framework 2026-27: Expanded SEND & Inclusion Focus</h3>
+                    <div class="score-badge">21/22</div>
+                </div>
+                <div class="card-timestamp">⏰ June 2026</div>
+                <div class="card-source"><a href="https://educationinspection.blog.gov.uk/2026/06/12/what-you-need-to-know-about-the-september-2026-updates-to-education-inspections/" target="_blank">Ofsted Official Blog</a> — June 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> New Ofsted framework (September 2026) emphasizes inclusion in its widest possible sense. Expands SEND support definition; makes inclusion the responsibility of ALL leaders, not just SENCos. 70 days to inspection readiness.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag senco">SENCO</span>
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag sponsor">EdTech Partner</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For SENCOs:</strong>
+                    <ul>
+                        <li>Inclusion is now a whole-school leadership accountability, not SENCO-only</li>
+                        <li>Gather evidence: EHCP quality, outcomes tracking, progress monitoring</li>
+                        <li>Prepare for deeper questioning on how all leaders support inclusion</li>
+                    </ul>
+                    <strong>For Schools:</strong>
+                    <ul>
+                        <li>Designated teachers and inclusion leads now explicitly part of inspection focus</li>
+                        <li>Contextual barriers beyond statutory groups now in scope (wellbeing, other barriers)</li>
+                        <li>Evidence of whole-school inclusion strategy becomes critical</li>
+                    </ul>
+                    <strong>For EdTech Partners:</strong>
+                    <ul>
+                        <li>SEND outcomes tracking and inclusion monitoring tools now essential for inspection prep</li>
+                        <li>Evidence dashboards for leadership teams — new consulting opportunity</li>
+                        <li>Schools need tools to demonstrate whole-school inclusion accountability</li>
+                    </ul>
+                </div>
+                <div class="card-action">Audit school readiness for whole-school inclusion focus — evidence gathering and leadership alignment urgent</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: readiness audit, evidence gaps, leadership alignment..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 4: EYFS Framework Safeguarding Updates -->
+            <div class="brief-card urgent">
+                <div class="card-header">
+                    <h3>EYFS Framework: Stronger Safeguarding Requirements (Sept 2026)</h3>
+                    <div class="score-badge">20/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://nasen.org.uk/news" target="_blank">NASEN News</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Updated EYFS Framework introduces stronger safeguarding requirements effective 1 September 2026 (70 days). Early years settings must audit compliance now.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag senco">SENCO</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools with EYFS:</strong>
+                    <ul>
+                        <li>EYFS settings need to update safeguarding policies by 1 Sept</li>
+                        <li>Staff training on updated requirements is mandatory</li>
+                        <li>Sleeping and eating practices have been updated — audit implementation</li>
+                    </ul>
+                    <strong>For SENCOs:</strong>
+                    <ul>
+                        <li>EYFS safeguarding changes may affect early identification and SEND pathway entry</li>
+                        <li>Stronger framework supports earlier intervention trigger points</li>
+                    </ul>
+                </div>
+                <div class="card-action">Audit EYFS safeguarding compliance against new framework — deadline 1 Sept non-negotiable</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: EYFS compliance, staff training timeline..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: SECTOR SIGNALS -->
+        <div class="column">
+            <h2>🟡 SECTOR SIGNALS</h2>
+
+            <!-- Card 5: Section 19 Transport EOTAS Barrier -->
+            <div class="brief-card monitor">
+                <div class="card-header">
+                    <h3>Section 19 Transport: Hidden Barrier to EOTAS Access</h3>
+                    <div class="score-badge monitor">19/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 17 July 2026</div>
+                <div class="card-source"><a href="https://www.specialneedsjungle.com/home-to-school-transport-doesnt-fit-reality-s19-eotas/" target="_blank">Special Needs Jungle</a> — 17 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Sector analysis reveals Section 19 transport guidance has not kept pace with EOTAS growth. Families report access gaps; schools face compliance risk when transport barriers prevent EOTAS attendance.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag senco">SENCO</span>
+                    <span class="audience-tag la">LA</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For SENCOs:</strong>
+                    <ul>
+                        <li>Transport is often a silent barrier to EOTAS access — flag in IRP discussions</li>
+                        <li>Reintegration may fail if transport support cannot be secured</li>
+                        <li>Liability risk: EOTAS placement without transport = compliance failure</li>
+                    </ul>
+                    <strong>For Schools:</strong>
+                    <ul>
+                        <li>Audit your Section 19 arrangements for coverage gaps</li>
+                        <li>Families may have legitimate complaints about transport barriers</li>
+                    </ul>
+                    <strong>For LAs:</strong>
+                    <ul>
+                        <li>Transport is a key constraint on AP/EOTAS accessibility — renegotiate provision</li>
+                        <li>Guidance update needed to align with current EOTAS landscape</li>
+                    </ul>
+                </div>
+                <div class="card-action">Audit transport support alongside EOTAS/reintegration planning — it is a material barrier to access</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: transport audits, barriers identified, LA action..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 6: Early Years Funding and Teaching Consultations -->
+            <div class="brief-card monitor">
+                <div class="card-header">
+                    <h3>Early Years Funding & Teacher Training: Two New Consultations</h3>
+                    <div class="score-badge monitor">17/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://www.eyalliance.org.uk/news-events/news/dfe-launches-new-consultation-into-early-years-funding/" target="_blank">EY Alliance News</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> DfE launches parallel consultations on early years funding arrangements and reforms to early years teacher training and professional status. Core sector reform across two fronts.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag la">LA</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Early Years Providers:</strong>
+                    <ul>
+                        <li>Funding model for early years support (inc. SEND early intervention) under review</li>
+                        <li>Teacher training routes and status may shift — workforce planning impacts</li>
+                        <li>Consultations signal broader early years system reform</li>
+                    </ul>
+                    <strong>For LAs:</strong>
+                    <ul>
+                        <li>Early years SEND support pathway may change alongside funding restructure</li>
+                    </ul>
+                </div>
+                <div class="card-action">Monitor consultations; engage early years providers and LAs in feedback window</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: consultation tracking, stakeholder engagement..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 7: EEF Inclusive Teaching Guidance -->
+            <div class="brief-card monitor">
+                <div class="card-header">
+                    <h3>EEF: New Inclusive Teaching Guidance for Schools</h3>
+                    <div class="score-badge monitor">16/22</div>
+                </div>
+                <div class="card-timestamp">⏰ July 2026</div>
+                <div class="card-source"><a href="https://educationendowmentfoundation.org.uk/news" target="_blank">Education Endowment Foundation</a> — July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> EEF publishes guidance emphasizing "carefully planned adaptations and targeted support rather than lowering expectations." Evidence-based approach to inclusion across school.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag senco">SENCO</span>
+                    <span class="audience-tag sponsor">EdTech Partner</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools/SENCOs:</strong>
+                    <ul>
+                        <li>Evidence-based guidance on high expectations + planned adaptations</li>
+                        <li>Resource for staff development and inclusion strategy design</li>
+                        <li>Ofsted alignment: practical backing for inspection readiness</li>
+                    </ul>
+                    <strong>For EdTech Partners:</strong>
+                    <ul>
+                        <li>Evidence-backed guidance positions adaptive tech as inclusion tool, not alternative pathway</li>
+                    </ul>
+                </div>
+                <div class="card-action">Adopt EEF guidance as reference in CPD, staff training, and inclusion policy development</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: CPD planning, guidance dissemination..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 8: Mental Health Strategy Call for Evidence -->
+            <div class="brief-card monitor">
+                <div class="card-header">
+                    <h3>Mental Health Strategy: Education Sector Call for Evidence</h3>
+                    <div class="score-badge monitor">15/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://nasen.org.uk/news" target="_blank">NASEN News</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Government launches call for evidence shaping England's new mental health strategy. Education sector invited to contribute on child/YP mental health priorities and school role.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag government">Government</span>
+                    <span class="audience-tag la">LA</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools/SENCOs:</strong>
+                    <ul>
+                        <li>Opportunity to feed evidence on school mental health pressures into policy</li>
+                        <li>SEND/mental health overlap increasingly recognized in policy</li>
+                    </ul>
+                    <strong>For LAs:</strong>
+                    <ul>
+                        <li>Advocacy window for cross-service coordination and funding</li>
+                    </ul>
+                </div>
+                <div class="card-action">Gather evidence from schools on mental health barriers and submit to strategy consultation</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: evidence collection, consultation input..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 9: Music Education Autism Resource Bases -->
+            <div class="brief-card monitor">
+                <div class="card-header">
+                    <h3>Music Education in Autism Resource Bases: New Evidence-Based Guidance</h3>
+                    <div class="score-badge monitor">15/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://nasen.org.uk/news" target="_blank">NASEN News / Live Music Now</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Live Music Now releases guidance on music education in autism resource bases. Practical, evidence-informed strategies for supporting autistic pupils through music.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag senco">SENCO</span>
+                    <span class="audience-tag sponsor">EdTech Partner</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools/ARB Staff:</strong>
+                    <ul>
+                        <li>Music is evidence-informed intervention for autistic pupils</li>
+                        <li>Practical guidance available for immediate adoption</li>
+                        <li>Staff training resources available through NASEN channels</li>
+                    </ul>
+                    <strong>For EdTech Partners:</strong>
+                    <ul>
+                        <li>Music tech and assistive tools for autism support may see increased adoption</li>
+                        <li>Evidence-backed guidance supports market for autism learning tools</li>
+                    </ul>
+                </div>
+                <div class="card-action">Share guidance with autism resource bases and ARB-supporting services — ready for immediate implementation</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: ARB engagement, guidance dissemination, training uptake..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: KEEP ON THE RADAR -->
+        <div class="column">
+            <h2>🟢 KEEP ON THE RADAR</h2>
+
+            <!-- Card 10: Big Future Survey -->
+            <div class="brief-card reference">
+                <div class="card-header">
+                    <h3>The Big Future Survey: Children & YP Voice on Education</h3>
+                    <div class="score-badge reference">14/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 20 July 2026</div>
+                <div class="card-source"><a href="https://nasen.org.uk/news" target="_blank">NASEN News / Children's Commissioner</a> — 20 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Children's Commissioner launches "The Big Future" — the largest survey of its kind capturing children and young people's experiences, aspirations, and concerns about education. Schools encouraged to participate.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag school">School</span>
+                    <span class="audience-tag senco">SENCO</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For Schools/SENCOs:</strong>
+                    <ul>
+                        <li>Pupil voice on education — including SEND perspective valued at policy level</li>
+                        <li>Survey captures lived experiences of EOTAS and alternative provision</li>
+                        <li>Schools should encourage SEND pupil participation in survey</li>
+                    </ul>
+                </div>
+                <div class="card-action">Encourage schools to participate in Big Future Survey — pupil voice is evidence for policy</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: school participation, pupil voice collection..."></textarea>
+                </div>
+            </div>
+
+            <!-- Card 11: Council SEND Inspections During Reorganisation -->
+            <div class="brief-card reference">
+                <div class="card-header">
+                    <h3>Council SEND Inspections: Continued During Local Government Reorganisation</h3>
+                    <div class="score-badge reference">12/22</div>
+                </div>
+                <div class="card-timestamp">⏰ 21 July 2026</div>
+                <div class="card-source"><a href="https://schoolsweek.co.uk/council-send-inspections-could-continue-during-reorganisation/" target="_blank">Schools Week</a> — 21 July 2026</div>
+                <div class="card-content">
+                    <strong>What:</strong> Ofsted and CQC confirm they will not make blanket deferrals of area SEND inspections during local government reorganisation. Inspections will proceed as scheduled.
+                </div>
+                <div class="audience-tags">
+                    <span class="audience-tag government">Government</span>
+                    <span class="audience-tag la">LA</span>
+                </div>
+                <div class="advice-toggle" onclick="toggleAdvice(this)">💡 Audience advice</div>
+                <div class="talking-points">
+                    <strong>For LAs in Reorganisation:</strong>
+                    <ul>
+                        <li>Area SEND inspections proceed on normal schedule — reorganisation not a deferral reason</li>
+                        <li>Leadership changes and staffing transitions will not pause inspections</li>
+                    </ul>
+                </div>
+                <div class="card-action">File for reference — benchmark for LA inspection planning during system changes</div>
+                <div class="card-notes-toggle" onclick="toggleNotes(this)">Add notes</div>
+                <div class="card-notes">
+                    <textarea placeholder="Notes: LA comparison, inspection framework tracking..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function toggleNotes(toggleElement) {
+            const notesBox = toggleElement.nextElementSibling;
+            toggleElement.classList.toggle('open');
+            notesBox.classList.toggle('open');
+        }
+
+        function toggleAdvice(toggleElement) {
+            const adviceBox = toggleElement.nextElementSibling;
+            toggleElement.classList.toggle('open');
+            adviceBox.classList.toggle('open');
+        }
+
+        function downloadBrief() {
+            try {
+                const filename = 'DAILY_BRIEF_' + new Date().toISOString().split('T')[0] + '.html';
+                const html = `<!DOCTYPE html>\n${document.documentElement.outerHTML}`;
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                const btn = event.target;
+                btn.textContent = '✅ Saved!';
+                setTimeout(() => { btn.textContent = '💾 Save'; }, 2000);
+            } catch (error) {
+                alert('Download failed: ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 DAILY BRIEF live — 24 July 2026, 09:15 UTC');
+        });
+    </script>
+</body>
+</html>
